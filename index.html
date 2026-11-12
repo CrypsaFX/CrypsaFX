@@ -6,6 +6,30 @@
     <title>CrypsaFX - Premium Trading & Coin Naga</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Firebase SDK Modular -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkT-V01rXoeT_noU63hRJKtAa1537L0Qc",
+            authDomain: "crypsafx.firebaseapp.com",
+            projectId: "crypsafx",
+            storageBucket: "crypsafx.appspot.com",
+            messagingSenderId: "413206683228",
+            appId: "1:413206683228:web:1a76a8b5ca80d86d051099",
+            measurementId: "G-MQN3WEB7NZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.fbMod = { doc, setDoc, getDoc, collection, addDoc, getDocs };
+        window.isFirebaseReady = true;
+    </script>
+
     <style>
         :root {
             --bg-base: #0a0c10;
@@ -38,19 +62,23 @@
         .auth-card {
             background-color: var(--bg-surface); border: 1px solid var(--border-color);
             border-radius: var(--radius-lg); padding: 30px; width: 100%; max-width: 380px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .auth-card h2 { text-align: center; font-size: 18px; margin-bottom: 20px; }
+        .auth-card h2 { text-align: center; font-size: 18px; margin-bottom: 20px; color: var(--text-main); }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
         .form-control {
             width: 100%; background: var(--bg-base); border: 1px solid var(--border-color);
             color: var(--text-main); padding: 12px; border-radius: var(--radius-md); font-size: 14px; outline: none;
+            transition: border-color 0.2s;
         }
         .form-control:focus { border-color: var(--accent-emerald); }
         .btn-auth {
             width: 100%; background: var(--accent-emerald); color: white; border: none;
             padding: 12px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.1s;
         }
+        .btn-auth:active { transform: scale(0.98); }
         .auth-switch { text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-muted); }
         .auth-switch span { color: var(--accent-gold); cursor: pointer; font-weight: 600; }
         #auth-msg { text-align: center; font-size: 12px; margin-bottom: 12px; min-height: 16px; }
@@ -67,16 +95,17 @@
             background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);
             margin-bottom: 20px;
         }
-        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 16px; cursor: pointer; font-weight: bold; padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; display: flex; align-items: center; gap: 6px; }
+        .menu-toggle { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; cursor: pointer; font-weight: 600; padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .greeting h2 { font-size: 18px; font-weight: 700; }
         .greeting p { color: var(--text-muted); font-size: 12px; }
-        .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-emerald), #047857); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
 
         .stat-card {
             background: var(--bg-surface); border: 1px solid var(--border-color);
             border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         .stat-header { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 13px; margin-bottom: 12px; }
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent-gold); }
@@ -84,7 +113,7 @@
         .view-panel { display: none; }
         .view-panel.active-view { display: block; }
         .panel-box { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; }
-        .panel-box h3 { font-size: 15px; margin-bottom: 14px; }
+        .panel-box h3 { font-size: 16px; margin-bottom: 14px; color: var(--text-main); }
 
         /* EMBED GAME COIN NAGA CONTAINER */
         #game-container-box {
@@ -96,39 +125,38 @@
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; background: #13161c;
             border-top: 1px solid var(--border-color);
-            display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
         }
-        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 12px; font-weight: 600; cursor: pointer; }
-        .bottom-nav-item svg { width: 22px; height: 22px; }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: color 0.2s; }
+        .bottom-nav-item i { font-size: 22px; }
         .bottom-nav-item.active { color: var(--accent-emerald); }
 
         /* DRAWER MENU */
         .drawer-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
-            z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s;
+            z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px);
         }
         .drawer-overlay.active { opacity: 1; visibility: visible; }
         .mobile-drawer {
-            position: fixed; top: 0; left: 0; width: 260px; height: 100vh; background: var(--bg-surface);
-            border-right: 1px solid var(--border-color); z-index: 2001; transform: translateX(-100%); transition: 0.3s;
+            position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--bg-surface);
+            border-right: 1px solid var(--border-color); z-index: 2001; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; flex-direction: column; padding: 20px;
         }
         .mobile-drawer.active { transform: translateX(0); }
-        .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        .drawer-close { background: none; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; font-weight: bold; }
-        .drawer-menu { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-        .drawer-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); color: var(--text-main); text-decoration: none; font-size: 14px; cursor: pointer; background: rgba(255,255,255,0.02); }
-        .drawer-item svg { width: 18px; height: 18px; color: var(--accent-emerald); }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .drawer-close { background: none; border: none; color: var(--text-main); font-size: 20px; cursor: pointer; }
+        .drawer-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: var(--radius-md); color: var(--text-main); text-decoration: none; font-size: 14px; cursor: pointer; background: rgba(255,255,255,0.02); transition: background 0.2s; }
+        .drawer-item i { font-size: 20px; color: var(--accent-emerald); }
         .drawer-item:hover { background: var(--bg-surface-hover); }
     </style>
 </head>
 <body>
-
-    <!-- HALAMAN LOGIN / REGISTER -->
+  <!-- HALAMAN LOGIN / REGISTER -->
     <div id="auth-section">
-        <img src="logo.png" alt="" style="height: 80px; margin-bottom: 10px; object-fit: contain; border-radius: 12px;" onerror="this.style.display='none'">
-        <h1 class="main-logo" style="margin-bottom: 30px;">CrypsaFX</h1>
+        <img src="logo.png" alt="Logo" style="height: 75px; margin-bottom: 12px; object-fit: contain; border-radius: 12px;" onerror="this.style.display='none'">
+        <h1 class="main-logo" style="margin-bottom: 25px;">CrypsaFX</h1>
         
         <div class="auth-card">
             <h2 id="auth-title">Masuk ke Akun</h2>
@@ -154,38 +182,26 @@
         <div class="mobile-drawer" id="mobileDrawer">
             <div class="drawer-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="logo.png" alt="" style="height: 24px; border-radius: 4px;" onerror="this.style.display='none'">
+                    <img src="logo.png" alt="Logo" style="height: 26px; border-radius: 4px;" onerror="this.style.display='none'">
                     <h1 class="main-logo" style="font-size: 20px; margin: 0;">Menu</h1>
                 </div>
-                <button class="drawer-close" onclick="toggleMenu()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                <button class="drawer-close" onclick="toggleMenu()"><i class="ph ph-x"></i></button>
             </div>
             <nav class="drawer-menu">
-                <a class="drawer-item" onclick="switchView('home'); toggleMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Beranda
-                </a>
-                <a class="drawer-item" onclick="switchView('game'); toggleMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M8 12h8"></path></svg> Game Coin Naga
-                </a>
-                <a class="drawer-item" onclick="switchView('akun'); toggleMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profil Akun
-                </a>
-                <a class="drawer-item" onclick="switchView('saldo'); toggleMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12h2"></path></svg> Isi Saldo
-                </a>
-                <a class="drawer-item" onclick="switchViewToWithdraw(); toggleMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Penarikan
-                </a>
-                <a class="drawer-item" onclick="switchView('transaksi'); toggleMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Riwayat Transaksi
-                </a>
+                <a class="drawer-item" onclick="switchView('home'); toggleMenu();"><i class="ph ph-house"></i> Beranda</a>
+                <a class="drawer-item" onclick="switchView('game'); toggleMenu();"><i class="ph ph-coins"></i> Game Coin Naga</a>
+                <a class="drawer-item" onclick="switchView('akun'); toggleMenu();"><i class="ph ph-user"></i> Profil Akun</a>
+                <a class="drawer-item" onclick="switchView('saldo'); toggleMenu();"><i class="ph ph-wallet"></i> Isi Saldo</a>
+                <a class="drawer-item" onclick="switchViewToWithdraw(); toggleMenu();"><i class="ph ph-money"></i> Penarikan</a>
+                <a class="drawer-item" onclick="switchView('transaksi'); toggleMenu();"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</a>
             </nav>
         </div>
 
         <main class="main-content">
             <div class="top-bar">
-                <button class="menu-toggle" onclick="toggleMenu()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> Menu</button>
+                <button class="menu-toggle" onclick="toggleMenu()"><i class="ph ph-list" style="font-size: 18px;"></i> Menu</button>
                 <div style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px;">
-                    <img src="logo.png" alt="" style="height: 26px; border-radius: 6px;" onerror="this.style.display='none'">
+                    <img src="logo.png" alt="Logo" style="height: 26px; border-radius: 6px;" onerror="this.style.display='none'">
                     <h1 class="main-logo" style="font-size: 20px; margin: 0;">CrypsaFX</h1>
                 </div>
                 <div style="width: 60px;"></div>
@@ -194,26 +210,28 @@
             <header class="header">
                 <div class="greeting">
                     <h2 id="waktu-sapaan">Selamat Datang</h2>
-                    <p>Sistem aktif</p>
+                    <p>Sistem Cloud Aktif</p>
                 </div>
                 <div class="avatar" id="user-avatar">J</div>
             </header>
 
+            <!-- VIEW 1: HOME -->
             <div id="view-home" class="view-panel active-view">
                 <div class="stat-card">
                     <div class="stat-header">
                         <span>Total Saldo Portofolio</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <i class="ph ph-vault" style="font-size: 20px; color: var(--accent-emerald);"></i>
                     </div>
                     <div class="stat-value" id="display-saldo">Rp 0</div>
                 </div>
                 <div class="panel-box" style="text-align: center;">
                     <h3>Mulai Peruntungan & Trading Game</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Mainkan Coin Naga langsung terhubung dengan saldo portofolio Anda.</p>
-                    <button class="btn-auth" onclick="switchView('game')" style="max-width: 200px; margin: 0 auto;">Mainkan Coin Naga</button>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Mainkan Coin Naga langsung terhubung dengan saldo portofolio Anda secara real-time.</p>
+                    <button class="btn-auth" onclick="switchView('game')" style="max-width: 220px; margin: 0 auto;">Mainkan Coin Naga</button>
                 </div>
             </div>
 
+            <!-- VIEW 2: GAME -->
             <div id="view-game" class="view-panel">
                 <div class="panel-box" style="padding: 10px;">
                     <h3 style="text-align: center; margin-bottom: 10px;">Coin Naga Mahjong</h3>
@@ -223,6 +241,7 @@
                 </div>
             </div>
 
+            <!-- VIEW 3: SALDO & DEPOSIT / WITHDRAW -->
             <div id="view-saldo" class="view-panel">
                 <div class="panel-box">
                     <h3 id="form-title">Form Transaksi Saldo</h3>
@@ -272,6 +291,7 @@
                 </div>
             </div>
 
+            <!-- VIEW 4: PROFIL -->
             <div id="view-akun" class="view-panel">
                 <div class="panel-box">
                     <h3>Lengkapi Data Profil</h3>
@@ -291,37 +311,38 @@
                     <p id="profile-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></p>
                     
                     <button onclick="logout()" style="width: 100%; background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Keluar Sesi
+                        <i class="ph ph-sign-out" style="font-size: 18px;"></i> Keluar Sesi
                     </button>
                 </div>
             </div>
 
+            <!-- VIEW 5: RIWAYAT -->
             <div id="view-transaksi" class="view-panel">
                 <div class="panel-box">
                     <h3>Riwayat Transaksi Saya</h3>
                     <div id="history-container" style="font-size: 12px; color: var(--text-muted);">
-                        Belum ada riwayat transaksi.
+                        Memuat riwayat transaksi...
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- BOTTOM NAV DENGAN INLINE SVG MURNI -->
+        <!-- BOTTOM NAV -->
         <nav class="bottom-nav">
             <a class="bottom-nav-item active" onclick="switchView('home')" id="nav-home">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <i class="ph ph-house"></i>
                 <span>Home</span>
             </a>
             <a class="bottom-nav-item" onclick="switchView('game')" id="nav-game">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M8 12h8"></path></svg>
+                <i class="ph ph-coins"></i>
                 <span>Coin Naga</span>
             </a>
             <a class="bottom-nav-item" onclick="switchView('saldo')" id="nav-saldo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12h2"></path></svg>
+                <i class="ph ph-wallet"></i>
                 <span>Isi Saldo</span>
             </a>
             <a class="bottom-nav-item" onclick="switchView('akun')" id="nav-akun">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <i class="ph ph-user"></i>
                 <span>Profil</span>
             </a>
         </nav>
@@ -349,8 +370,7 @@
                 : 'Sudah punya akun? <span onclick="toggleAuthMode()">Masuk di sini</span>';
             msgBox.innerText = '';
         }
-
-        function handleAuth() {
+      async function handleAuth() {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
             
@@ -365,39 +385,55 @@
                 return;
             }
 
-            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            if (!window.isFirebaseReady) {
+                showMessage('Menghubungkan ke database cloud...', false);
+                return;
+            }
 
-            if (!isLoginMode) {
-                if (pass.length < 6) {
-                    showMessage('Password minimal 6 karakter!', false);
-                    return;
-                }
-                if (usersDB[user]) {
-                    showMessage('Username sudah terdaftar!', false);
+            try {
+                const docRef = window.fbMod.doc(window.db, "users", user);
+                const docSnap = await window.fbMod.getDoc(docRef);
+
+                if (!isLoginMode) {
+                    if (pass.length < 6) {
+                        showMessage('Password minimal 6 karakter!', false);
+                        return;
+                    }
+                    if (docSnap.exists()) {
+                        showMessage('Username sudah terdaftar!', false);
+                    } else {
+                        await window.fbMod.setDoc(docRef, {
+                            password: pass,
+                            saldo: 0,
+                            profile: {},
+                            status: 'active',
+                            rtpMode: 'normal',
+                            lastActive: Date.now()
+                        });
+                        showMessage('Berhasil daftar! Silakan masuk.', true);
+                        setTimeout(() => toggleAuthMode(), 1500);
+                    }
                 } else {
-                    usersDB[user] = { password: pass, saldo: 0, profile: {}, status: 'active' };
-                    localStorage.setItem('crypsaUsers', JSON.stringify(usersDB));
-                    showMessage('Berhasil daftar! Silakan masuk.', true);
-                    setTimeout(() => toggleAuthMode(), 1500);
-                }
-            } else {
-                let userData = usersDB[user];
-                let isValid = false;
-                if (userData) {
-                    if (typeof userData === 'object' && userData.status === 'blocked') {
+                    if (!docSnap.exists()) {
+                        showMessage('Username atau password salah!', false);
+                        return;
+                    }
+                    let data = docSnap.data();
+                    if (data.status === 'blocked') {
                         showMessage('Akun Anda telah diblokir oleh admin!', false);
                         return;
                     }
-                    if (typeof userData === 'object' && userData.password === pass) isValid = true;
-                    if (typeof userData === 'string' && userData === pass) isValid = true;
+                    if (data.password === pass) {
+                        sessionStorage.setItem('activeUser', user);
+                        await window.fbMod.setDoc(docRef, { lastActive: Date.now() }, { merge: true });
+                        showDashboard(user);
+                    } else {
+                        showMessage('Username atau password salah!', false);
+                    }
                 }
-
-                if (isValid) {
-                    sessionStorage.setItem('activeUser', user);
-                    showDashboard(user);
-                } else {
-                    showMessage('Username atau password salah!', false);
-                }
+            } catch (e) {
+                console.error(e);
+                showMessage('Kesalahan jaringan / izin database ditolak!', false);
             }
         }
 
@@ -406,25 +442,121 @@
             msgBox.className = isSuccess ? 'text-success' : 'text-danger';
         }
 
-        function showDashboard(username) {
+        async function showDashboard(username) {
             authSection.style.display = 'none';
             appSection.style.display = 'block';
             
             const hour = new Date().getHours();
-            let sapaan = 'Selamat Malam';
-            if(hour >= 5 && hour < 11) sapaan = 'Selamat Pagi';
-            else if(hour >= 11 && hour < 15) sapaan = 'Selamat Siang';
-            else if(hour >= 15 && hour < 18) sapaan = 'Selamat Sore';
+            let sapaan = hour >= 5 && hour < 11 ? 'Selamat Pagi' : hour >= 11 && hour < 15 ? 'Selamat Siang' : hour >= 15 && hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
             
             document.getElementById('waktu-sapaan').innerText = `${sapaan}, ${username}`;
             document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
             loadUserData(username);
         }
 
+        async function loadUserData(username) {
+            try {
+                const docRef = window.fbMod.doc(window.db, "users", username);
+                const docSnap = await window.fbMod.getDoc(docRef);
+                if (docSnap.exists()) {
+                    let data = docSnap.data();
+                    document.getElementById('display-saldo').innerText = `Rp ${(data.saldo || 0).toLocaleString('id-ID')}`;
+                    if (data.profile) {
+                        document.getElementById('profile-name').value = data.profile.name || '';
+                        document.getElementById('profile-phone').value = data.profile.phone || '';
+                        document.getElementById('profile-email').value = data.profile.email || '';
+                    }
+                }
+            } catch(e) {}
+        }
+
+        async function saveRealProfile() {
+            let name = document.getElementById('profile-name').value.trim();
+            let phone = document.getElementById('profile-phone').value.trim();
+            let email = document.getElementById('profile-email').value.trim();
+            let msgEl = document.getElementById('profile-msg');
+
+            if (name.length < 3 || !name.includes(' ')) {
+                msgEl.innerText = 'Nama lengkap minimal 2 kata!';
+                msgEl.className = 'text-danger';
+                return;
+            }
+            let username = sessionStorage.getItem('activeUser');
+            try {
+                const docRef = window.fbMod.doc(window.db, "users", username);
+                await window.fbMod.setDoc(docRef, { profile: { name, phone, email } }, { merge: true });
+                msgEl.innerText = 'Profil berhasil disimpan ke Cloud!';
+                msgEl.className = 'text-success';
+            } catch(e) {
+                msgEl.innerText = 'Gagal menyimpan profil.';
+                msgEl.className = 'text-danger';
+            }
+        }
+
+        async function requestTransaction() {
+            let type = document.getElementById('trx-type').value;
+            let amount = parseInt(document.getElementById('trx-amount').value);
+            let msgEl = document.getElementById('trx-msg');
+            let username = sessionStorage.getItem('activeUser');
+
+            if (!amount || amount <= 0) {
+                msgEl.innerText = 'Masukkan nominal yang valid!';
+                msgEl.className = 'text-danger';
+                return;
+            }
+
+            let details = '';
+            if (type.includes('Penarikan')) {
+                let method = document.getElementById('withdraw-method').value;
+                let destNum = document.getElementById('dest-number').value.trim();
+                details = `(${method}: ${destNum})`;
+            }
+
+            try {
+                await window.fbMod.addDoc(window.fbMod.collection(window.db, "transactions"), {
+                    id: 'TRX-' + Math.floor(1000 + Math.random() * 9000),
+                    user: username,
+                    type: type + ' ' + details,
+                    amount: amount,
+                    status: 'Pending',
+                    timestamp: Date.now()
+                });
+                msgEl.innerText = 'Permintaan berhasil dikirim ke Admin!';
+                msgEl.className = 'text-success';
+                document.getElementById('trx-amount').value = '';
+                if(document.getElementById('deposit-options-container')) document.getElementById('deposit-options-container').style.display = 'none';
+            } catch(e) {
+                msgEl.innerText = 'Gagal mengirim transaksi.';
+                msgEl.className = 'text-danger';
+            }
+        }
+
+        async function loadUserHistory(username) {
+            let container = document.getElementById('history-container');
+            try {
+                const querySnapshot = await window.fbMod.getDocs(window.fbMod.collection(window.db, "transactions"));
+                let html = '<table style="width:100%; border-collapse:collapse;">';
+                html += '<tr style="color:var(--text-muted); border-bottom:1px solid var(--border-color);"><th style="padding:8px; text-align:left;">ID</th><th style="padding:8px; text-align:left;">Tipe</th><th style="padding:8px; text-align:left;">Nominal</th><th style="padding:8px; text-align:left;">Status</th></tr>';
+                
+                let count = 0;
+                querySnapshot.forEach((docSnap) => {
+                    let t = docSnap.data();
+                    if (t.user === username) {
+                        count++;
+                        let color = t.status === 'Pending' ? 'color: var(--accent-gold);' : 'color: var(--accent-emerald);';
+                        html += `<tr style="border-bottom:1px solid var(--border-color);"><td style="padding:8px;">${t.id}</td><td style="padding:8px;">${t.type}</td><td style="padding:8px;">Rp ${t.amount.toLocaleString('id-ID')}</td><td style="padding:8px; font-weight:600; ${color}">${t.status}</td></tr>`;
+                    }
+                });
+                html += '</table>';
+                container.innerHTML = count > 0 ? html : 'Belum ada riwayat transaksi.';
+            } catch(e) {
+                container.innerHTML = 'Gagal memuat riwayat.';
+            }
+        }
+
         function switchView(viewName) {
             document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active-view'));
             document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
-
             let activeUser = sessionStorage.getItem('activeUser');
 
             if(viewName === 'home') {
@@ -439,7 +571,7 @@
             } else if(viewName === 'saldo') {
                 document.getElementById('view-saldo').classList.add('active-view');
                 document.getElementById('nav-saldo').classList.add('active');
-                handleTrxTypeChange(); 
+                handleTrxTypeChange();
             } else if(viewName === 'akun') {
                 document.getElementById('view-akun').classList.add('active-view');
                 document.getElementById('nav-akun').classList.add('active');
@@ -459,34 +591,21 @@
             let type = document.getElementById('trx-type').value;
             let depositContainer = document.getElementById('deposit-options-container');
             let withdrawContainer = document.getElementById('withdraw-options-container');
-
-            if (!depositContainer || !withdrawContainer) return;
-
             if (type.includes('Deposit')) {
                 withdrawContainer.style.display = 'none';
-                handleAmountInput(); 
+                handleAmountInput();
             } else {
                 depositContainer.style.display = 'none';
                 withdrawContainer.style.display = 'block';
-                handleMethodChange();
             }
         }
 
         function handleAmountInput() {
             let type = document.getElementById('trx-type').value;
-            let amountInput = document.getElementById('trx-amount');
+            let amount = parseInt(document.getElementById('trx-amount').value) || 0;
             let depositContainer = document.getElementById('deposit-options-container');
-            
-            if (!amountInput || !depositContainer) return;
-
-            let amount = parseInt(amountInput.value) || 0;
-
-            if (type.includes('Deposit')) {
-                if (amount > 0) {
-                    depositContainer.style.display = 'block';
-                } else {
-                    depositContainer.style.display = 'none';
-                }
+            if (type.includes('Deposit') && amount > 0) {
+                depositContainer.style.display = 'block';
             } else {
                 depositContainer.style.display = 'none';
             }
@@ -496,7 +615,6 @@
             let method = document.getElementById('withdraw-method').value;
             let label = document.getElementById('dest-label');
             let input = document.getElementById('dest-number');
-
             if (['DANA', 'GoPay', 'OVO', 'LinkAja'].includes(method)) {
                 label.innerText = `Nomor Telepon (${method})`;
                 input.placeholder = 'Contoh: 081234567890';
@@ -506,163 +624,15 @@
             }
         }
 
-        function loadUserData(username) {
-            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
-            let userData = usersDB[username];
-            let saldo = 0;
-            if (userData) {
-                if (typeof userData === 'object' && userData.saldo !== undefined) saldo = userData.saldo;
-                if (userData.profile) {
-                    document.getElementById('profile-name').value = userData.profile.name || '';
-                    document.getElementById('profile-phone').value = userData.profile.phone || '';
-                    document.getElementById('profile-email').value = userData.profile.email || '';
-                }
-            }
-            document.getElementById('display-saldo').innerText = `Rp ${saldo.toLocaleString('id-ID')}`;
-        }
-
-        function saveRealProfile() {
-            let name = document.getElementById('profile-name').value.trim();
-            let phone = document.getElementById('profile-phone').value.trim();
-            let email = document.getElementById('profile-email').value.trim();
-            let msgEl = document.getElementById('profile-msg');
-
-            if (name.length < 3 || !name.includes(' ')) {
-                msgEl.innerText = 'Nama lengkap harus minimal 2 kata!';
-                msgEl.className = 'text-danger';
-                return;
-            }
-            if (!phone.startsWith('08') || phone.length < 10) {
-                msgEl.innerText = 'No WhatsApp harus diawali 08 dan min 10 digit!';
-                msgEl.className = 'text-danger';
-                return;
-            }
-            if (!email.includes('@') || !email.includes('.')) {
-                msgEl.innerText = 'Format email tidak valid!';
-                msgEl.className = 'text-danger';
-                return;
-            }
-
-            let username = sessionStorage.getItem('activeUser');
-            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
-            
-            if(usersDB[username]) {
-                if(typeof usersDB[username] !== 'object') {
-                    usersDB[username] = { password: usersDB[username], saldo: 0 };
-                }
-                usersDB[username].profile = { name, phone, email };
-                localStorage.setItem('crypsaUsers', JSON.stringify(usersDB));
-                msgEl.innerText = 'Profil berhasil disimpan!';
-                msgEl.className = 'text-success';
-            }
-        }
-
-        function requestTransaction() {
-            let type = document.getElementById('trx-type').value;
-            let amount = parseInt(document.getElementById('trx-amount').value);
-            let msgEl = document.getElementById('trx-msg');
-            let username = sessionStorage.getItem('activeUser');
-
-            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
-            let userData = usersDB[username];
-            let currentSaldo = (userData && typeof userData === 'object' && userData.saldo !== undefined) ? userData.saldo : 0;
-
-            if (type.includes('Deposit')) {
-                if (!amount || amount < 10000) {
-                    msgEl.innerText = 'Minimal isi ulang saldo adalah Rp 10.000!';
-                    msgEl.className = 'text-danger';
-                    return;
-                }
-            }
-
-            if (type.includes('Penarikan')) {
-                if (currentSaldo <= 0) {
-                    msgEl.innerText = 'Gagal: Saldo Anda Rp 0, tidak dapat melakukan penarikan!';
-                    msgEl.className = 'text-danger';
-                    return;
-                }
-                if (!amount || amount <= 0) {
-                    msgEl.innerText = 'Masukkan nominal penarikan yang valid!';
-                    msgEl.className = 'text-danger';
-                    return;
-                }
-                if (amount > currentSaldo) {
-                    msgEl.innerText = `Gagal: Nominal melebihi saldo aktif (Rp ${currentSaldo.toLocaleString('id-ID')})!`;
-                    msgEl.className = 'text-danger';
-                    return;
-                }
-
-                let destNum = document.getElementById('dest-number').value.trim();
-                if (!destNum) {
-                    msgEl.innerText = 'Nomor telepon / rekening tujuan wajib diisi!';
-                    msgEl.className = 'text-danger';
-                    return;
-                }
-            }
-
-            let details = '';
-            if (type.includes('Penarikan')) {
-                let method = document.getElementById('withdraw-method').value;
-                let destNum = document.getElementById('dest-number').value.trim();
-                details = `(${method}: ${destNum})`;
-            }
-
-            let allTrx = JSON.parse(localStorage.getItem('crypsaTrx')) || [];
-            allTrx.push({
-                id: 'TRX-' + Math.floor(1000 + Math.random() * 9000),
-                user: username,
-                type: type + ' ' + details,
-                amount: amount,
-                status: 'Pending'
-            });
-
-            localStorage.setItem('crypsaTrx', JSON.stringify(allTrx));
-            msgEl.innerText = 'Permintaan berhasil dikirim ke Admin!';
-            msgEl.className = 'text-success';
-            document.getElementById('trx-amount').value = '';
-            if(document.getElementById('deposit-options-container')) {
-                document.getElementById('deposit-options-container').style.display = 'none';
-            }
-            if(document.getElementById('dest-number')) document.getElementById('dest-number').value = '';
-        }
-
-        function loadUserHistory(username) {
-            let allTrx = JSON.parse(localStorage.getItem('crypsaTrx')) || [];
-            let myTrx = allTrx.filter(t => t.user === username);
-            let container = document.getElementById('history-container');
-
-            if (myTrx.length === 0) {
-                container.innerHTML = 'Belum ada riwayat transaksi.';
-                return;
-            }
-
-            let html = '<table style="width:100%; border-collapse:collapse;">';
-            html += '<tr style="color:var(--text-muted); border-bottom:1px solid var(--border-color);"><th style="text-align:left; padding:6px;">ID</th><th style="text-align:left; padding:6px;">Tipe & Tujuan</th><th style="text-align:left; padding:6px;">Nominal</th><th style="text-align:left; padding:6px;">Status</th></tr>';
-            
-            myTrx.forEach(t => {
-                let color = t.status === 'Pending' ? 'color: var(--accent-gold);' : 'color: var(--accent-emerald);';
-                html += `<tr style="border-bottom:1px solid var(--border-color);">
-                    <td style="padding:8px;">${t.id}</td>
-                    <td style="padding:8px;">${t.type}</td>
-                    <td style="padding:8px;">Rp ${t.amount.toLocaleString('id-ID')}</td>
-                    <td style="padding:8px; font-weight:600; ${color}">${t.status}</td>
-                </tr>`;
-            });
-            html += '</table>';
-            container.innerHTML = html;
-        }
-
         function logout() {
             sessionStorage.removeItem('activeUser');
             appSection.style.display = 'none';
             authSection.style.display = 'flex';
         }
 
-        const drawer = document.getElementById('mobileDrawer');
-        const overlay = document.getElementById('drawerOverlay');
         function toggleMenu() {
-            drawer.classList.toggle('active');
-            overlay.classList.toggle('active');
+            document.getElementById('mobileDrawer').classList.toggle('active');
+            document.getElementById('drawerOverlay').classList.toggle('active');
         }
     </script>
 </body>
